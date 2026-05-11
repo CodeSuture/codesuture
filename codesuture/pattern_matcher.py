@@ -1,4 +1,4 @@
-﻿from types import FrameType
+from types import FrameType
 from typing import Optional, NamedTuple
 import dis
 import re
@@ -181,6 +181,48 @@ def _infer_default(var_name, instructions=None, crash_idx=None):
     if any(kw in name for kw in ('list','items','keys','values','array')):
         return []
     return ""
+
+def _infer_subscript_default(instructions=None, crash_idx=None):
+    if instructions is not None and crash_idx is not None:
+        i = crash_idx + 1
+        while i < len(instructions):
+            instr = instructions[i]
+            if instr.opname in ('LOAD_CONST', 'LOAD_FAST'):
+                i += 1
+                continue
+            if instr.opname == 'BINARY_SUBSCR':
+                i += 1
+                continue
+            break
+        for j in range(i, min(i + 4, len(instructions))):
+            instr = instructions[j]
+            if instr.opname in ('LOAD_ATTR', 'LOAD_METHOD'):
+                string_methods = {
+                    'capitalize', 'casefold', 'center', 'encode', 'expandtabs',
+                    'format', 'format_map', 'join', 'ljust', 'lower', 'lstrip',
+                    'removeprefix', 'removesuffix', 'replace', 'rjust', 'strip',
+                    'swapcase', 'title', 'translate', 'upper', 'zfill',
+                    'split', 'startswith', 'endswith',
+                }
+                if instr.argval in string_methods:
+                    return ""
+            elif instr.opname in ('BINARY_OP', 'BINARY_ADD', 'BINARY_SUBTRACT',
+                                   'BINARY_MULTIPLY', 'BINARY_TRUE_DIVIDE'):
+                return 0
+            elif instr.opname == 'CALL':
+                for k in range(max(0, j - 2), j):
+                    if instructions[k].opname == 'LOAD_GLOBAL' and \
+                       instructions[k].argval in ('int', 'float'):
+                        return 0
+            elif instr.opname in ('LIST_APPEND', 'STORE_SUBSCR'):
+                return None
+            elif instr.opname in ('RETURN_VALUE', 'STORE_FAST'):
+                break
+            elif instr.opname in ('PRECALL',):
+                continue
+            else:
+                break
+    return None
 
 def _infer_attribute_default(attr_name, fallback_name, instructions=None, crash_idx=None):
     string_methods = {
@@ -377,7 +419,7 @@ def _none_subscript_spec(frame):
         return None
 
     spec = PatchSpec('subscript_guard', var_name=container_var,
-                     default_value=_infer_default(final_key if isinstance(final_key, str) else '', instructions, idx),
+                     default_value=_infer_subscript_default(instructions, idx),
                      key_name=final_key)
 
     prop_origin = _check_property_origin(frame, instructions, idx)
@@ -444,7 +486,7 @@ def _try_chain_subscript(frame, instructions, failing_idx):
 
     last_instr_idx = failing_idx + len(keys_fwd) * 2  
     final_key = all_keys[-1]
-    default = _infer_default(final_key if isinstance(final_key, str) else '', instructions, last_instr_idx)
+    default = _infer_subscript_default(instructions, last_instr_idx)
 
     return PatchSpec('chain_subscript_guard', var_name=root_var,
                      default_value=default, key_name=tuple(all_keys))
@@ -470,18 +512,27 @@ def _dict_get_spec(frame, msg):
     match = re.search(r"KeyError\: '(\w+)'", msg)
     if not match:
         match = re.search(r"'(\w+)'", msg)
-    if not match:
-        return None
-    key = match.group(1)
+    key = match.group(1) if match else None
     instructions = list(dis.get_instructions(frame.f_code))
     tgt = _find_target_instr(instructions, frame.f_lasti)
     if tgt is None or tgt.opname != 'BINARY_SUBSCR':
         return None
     idx = instructions.index(tgt)
+
+    if key is None:
+        if idx > 0 and instructions[idx - 1].opname == 'LOAD_CONST':
+            key = instructions[idx - 1].argval
+        else:
+            return None
+
+    chain_spec = _try_chain_subscript(frame, instructions, idx)
+    if chain_spec is not None:
+        return chain_spec
+
     for i in range(idx-1, -1, -1):
         if instructions[i].opname in ('LOAD_FAST', 'LOAD_DEREF'):
             dict_var = frame.f_code.co_varnames[instructions[i].arg]
-            return PatchSpec('key_guard', dict_var, _infer_default(key, instructions, idx), key_name=key)
+            return PatchSpec('key_guard', dict_var, _infer_subscript_default(instructions, idx), key_name=key)
     return None
 
 def _str_concat_spec(frame, msg):

@@ -79,6 +79,16 @@ class CodeSutureTracer:
         if _is_internal_frame(frame):
             return
 
+        name = getattr(frame.f_code, 'co_qualname', '') or frame.f_code.co_name
+        if '<listcomp>' in name or '<genexpr>' in name or \
+           '<dictcomp>' in name or '<setcomp>' in name:
+            import logging
+            logging.getLogger(__name__).debug(
+                "[CodeSuture] Skipping %s — "
+                "comprehensions are not patchable via __code__", name
+            )
+            return
+
         from codesuture.persistence import HEALED_FUNCTIONS, _heal_key
         from codesuture.code_replacer import get_function_from_frame
         try:

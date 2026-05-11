@@ -5,7 +5,7 @@ from codesuture.tracer import install, uninstall
 def main():
     parser = argparse.ArgumentParser(prog='codesuture',
                                      description='Runtime Python bytecode patcher with self-healing re-execution')
-    parser.add_argument('--version', action='version', version='codesuture 0.5.0')
+    parser.add_argument('--version', action='version', version='codesuture 0.5.1')
     sub = parser.add_subparsers(dest='command', required=True)
 
     run_parser = sub.add_parser('run', help='Run a script with live patching')

@@ -18,6 +18,14 @@ htmlcov/
 .codesuture_fingerprints
 .models/
 
+# Exclude internal / dev scripts
+codesuture_verify*.py
+livepatch_verify*.py
+realbugg.py
+real.py
+*.zip
+.livepatch_*/
+
 # IDE / OS
 .vscode/
 .idea/

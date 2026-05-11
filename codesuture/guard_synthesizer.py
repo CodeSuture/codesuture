@@ -1,4 +1,4 @@
-﻿"""
+"""
 Synthesises guard + original bytecode for all deterministic strategies.
 """
 from bytecode import Bytecode, Instr, Label, Compare
@@ -25,6 +25,22 @@ def validate_patch(original_code, patched_code):
 
 def propagate_patch(original_func, patched_code) -> int:
     import gc
+    import logging
+    if original_func is None:
+        return 0
+    if not hasattr(original_func, '__code__'):
+        return 0
+    name = getattr(original_func, '__qualname__', '') or \
+           getattr(original_func, '__name__', '')
+    if '<listcomp>' in name or '<genexpr>' in name or \
+       '<dictcomp>' in name or '<setcomp>' in name:
+        import logging
+        logging.getLogger(__name__).debug(
+            "[CodeSuture] Skipping %s — "
+            "comprehensions are not patchable via __code__", name
+        )
+        return 0
+
     original_code = original_func.__code__
     propagated = 0
 

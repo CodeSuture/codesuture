@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-05-11
+
+### Fixed
+- propagate_patch: skip list/dict/set/generator comprehensions
+  instead of crashing with AttributeError on __code__
+- key_guard, subscript_guard, chain_subscript_guard: infer
+  correct default type from downstream bytecode usage
+  (string methods -> "" default, numeric ops -> 0 default)
+- KeyError on chained subscripts (e.g. request["headers"]["auth"].strip())
+  now produces a chain_subscript_guard instead of a simple key_guard,
+  preventing secondary TypeError from None subscript access
+
 ## [0.5.0] - 2026-05-08
 
 ### Added
