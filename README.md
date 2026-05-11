@@ -64,7 +64,7 @@ Session summary:
 | `codesuture rollback` | `--all` | Remove ALL patches + fingerprint registry |
 | `codesuture rollback` | `--dry-run` | List what would be removed |
 
-## Dark upgrades
+## Runtime Intelligence
 
 - **D1 — Semantic diff safety gate**: Rejects patches that modify too many instructions, preventing runaway bytecode corruption.
 - **D2 — Caller-aware patch propagation**: Propagates patches to closures and bound methods via `gc.get_referrers`.
@@ -83,3 +83,4 @@ Session summary:
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
