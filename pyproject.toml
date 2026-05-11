@@ -7,7 +7,7 @@ name = "codesuture"
 version = "0.5.0"
 description = "Runtime Python bytecode patcher with guard knowledge base, persistence, and self-healing re-execution"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.11"
 keywords = ["bytecode", "runtime", "patching", "self-healing",
             "debugging", "null-safety", "resilience"]
@@ -31,3 +31,7 @@ codesuture = "codesuture.cli:main"
 
 [project.urls]
 "Source" = "https://github.com/codesuture-py/codesuture"
+
+[tool.setuptools.packages.find]
+include = ["codesuture*"]
+
