@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# CodeSuture specific
+.codesuture_cache/
+.codesuture_store/
+.codesuture_knowledge/
+.codesuture_fingerprints
+.models/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
