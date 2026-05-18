@@ -152,6 +152,8 @@ from codesuture.middleware import CodeSutureMiddleware
 app = CodeSutureMiddleware(wsgi_app)
 ```
 
+See the implementation in [codesuture/middleware.py](codesuture/middleware.py).
+
 ---
 
 ## Runtime Intelligence
@@ -198,7 +200,7 @@ app = CodeSutureMiddleware(wsgi_app)
 
 ## Roadmap
 
-Tracked in `ROADMAP.md`. v1.0 themes:
+Tracked in [ROADMAP.md](ROADMAP.md). v1.0 themes:
 
 - `sys.monitoring` as the default engine on Python 3.12+ (zero line-tracing overhead on hot paths)
 - Stronger transaction recovery boundaries across web frameworks
@@ -210,4 +212,4 @@ Tracked in `ROADMAP.md`. v1.0 themes:
 
 ## License
 
-MIT. See `LICENSE` for details.
+MIT. See [LICENSE](LICENSE) for details. For a detailed history of changes, see the [Changelog](CHANGELOG.md).
